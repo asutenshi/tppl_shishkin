@@ -1,4 +1,5 @@
 import math
+import os
 import sys
 
 HELP_MESSAGE = """Стековая машина для вычисления выражений в постфиксной нотации (RPN).
@@ -21,6 +22,19 @@ HELP_MESSAGE = """Стековая машина для вычисления вы
     python main.py "3 0 4 ~ 2 ~"
     python main.py "2 2 + 4 - 4 ~ 2 3 * +"
 """
+
+
+TILDE_EXPANDED_MESSAGE = """Ошибка: символ '~' был раскрыт оболочкой в домашний каталог ({home}).
+
+Оболочка (zsh/bash) подставляет путь вместо '~' до запуска программы,
+поэтому оператор '~' до неё не дошёл. Чтобы передать его как есть:
+    - возьмите выражение в кавычки:  python main.py "2 3 ~"
+    - или экранируйте символ:        python main.py 2 3 \\~"""
+
+
+def has_expanded_tilde(expression: str) -> bool:
+    home = os.path.expanduser("~")
+    return home not in OPERATORS and home in expression.split()
 
 
 def is_number(token: str) -> bool:
@@ -137,6 +151,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     raw_expression = " ".join(argv)
+    if has_expanded_tilde(raw_expression):
+        print(TILDE_EXPANDED_MESSAGE.format(home=os.path.expanduser("~")), file=sys.stderr)
+        return 1
+
     try:
         result = evaluate(raw_expression, verbose=True)
         print(f"\n{raw_expression} = {format_value(result)}")

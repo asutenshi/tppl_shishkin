@@ -216,6 +216,18 @@ class TestMainCli:
         captured = capsys.readouterr()
         assert expected_output in (captured.out + captured.err)
 
+    @pytest.mark.parametrize("as_single_arg", [False, True], ids=["argv_tokens", "single_string"])
+    def test_main_expanded_tilde(self, monkeypatch, capsys, as_single_arg):
+        monkeypatch.setenv("HOME", "/home/tester")
+        args = ["2 3 /home/tester"] if as_single_arg else ["2", "3", "/home/tester"]
+        code = main(args)
+        assert code == 1
+        captured = capsys.readouterr()
+        assert "раскрыт оболочкой" in captured.err
+        assert "/home/tester" in captured.err
+        assert 'python main.py "2 3 ~"' in captured.err
+        assert captured.out == ""
+
     def test_main_default_sys_argv(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.argv", ["main.py", "2", "3", "+"])
         code = main()
