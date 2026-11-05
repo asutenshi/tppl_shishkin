@@ -6,3 +6,9 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+
+node_modules/
+/report/demo/playground.py
+/report/demo/pylsp.log
+/report/demo/mini/notes.txt
+/report/demo/mini/server.log
