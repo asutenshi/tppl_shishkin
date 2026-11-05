@@ -1,0 +1,12 @@
+{
+  "name": "report",
+  "version": "1.0.0",
+  "description": "Доклад про Language Server Protocol (reveal.js)",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8000"
+  },
+  "dependencies": {
+    "reveal.js": "^6.0.2"
+  }
+}

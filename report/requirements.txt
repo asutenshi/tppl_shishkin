@@ -1,0 +1,2 @@
+python-lsp-server[pyflakes,pycodestyle]==1.15.0
+pygls==2.1.1

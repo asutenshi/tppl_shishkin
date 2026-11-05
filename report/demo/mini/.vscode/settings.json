@@ -1,0 +1,14 @@
+{
+  // Демо 3: тот же клиент, но сервер наш (mini/server.py) и файлы любого текста
+  "lspDemo.serverCommand": ["sh", "-c", "exec ../../.venv/bin/python server.py 2>> server.log"],
+  "lspDemo.languages": ["plaintext"],
+  "lspDemo.trace.server": "verbose",
+
+  "workbench.colorTheme": "Light Modern",
+  "workbench.startupEditor": "none",
+  "editor.fontSize": 20,
+  "editor.minimap.enabled": false,
+  "editor.hover.delay": 300,
+  "editor.formatOnSave": false,
+  "terminal.integrated.fontSize": 18
+}

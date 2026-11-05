@@ -1,0 +1,54 @@
+{
+  "name": "lsp-demo",
+  "displayName": "LSP Demo",
+  "description": "Минимальный клиент LSP для демонстрации: запускает любой языковой сервер из настроек",
+  "version": "0.0.1",
+  "publisher": "local",
+  "private": true,
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:plaintext"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "LSP Demo",
+      "properties": {
+        "lspDemo.serverCommand": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Команда запуска языкового сервера по stdio. Пути с / считаются от папки проекта."
+        },
+        "lspDemo.languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "python"
+          ],
+          "description": "Языки (languageId), для которых включается сервер"
+        },
+        "lspDemo.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Печатать JSON-RPC сообщения в панель Output"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "9.0.1"
+  }
+}

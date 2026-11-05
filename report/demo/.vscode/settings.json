@@ -1,0 +1,13 @@
+{
+  // stderr сервера (предупреждения pylsp, вывод black) уводим в pylsp.log, чтобы не шуметь в Output
+  "lspDemo.serverCommand": ["sh", "-c", "exec ../.venv/bin/python -m pylsp 2>> pylsp.log"],
+  "lspDemo.trace.server": "verbose",
+
+  "workbench.colorTheme": "Light Modern",
+  "workbench.startupEditor": "none",
+  "editor.fontSize": 20,
+  "editor.minimap.enabled": false,
+  "editor.hover.delay": 300,
+  "editor.formatOnSave": false,
+  "terminal.integrated.fontSize": 18
+}

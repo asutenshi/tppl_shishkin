@@ -1,0 +1,1019 @@
+/* Светлая тема доклада поверх reveal.js "white" (плохие проекторы: белый фон,
+   тёмный текст, высокий контраст). Шрифты системные: презентация работает офлайн. */
+
+:root {
+  --bg: #ffffff;
+  --fg: #1a2330;
+  --muted: #4a5668;
+  --accent: #0b5cad;
+  --accent-2: #b45309;
+  --code-bg: #f1f4f8;
+
+  --r-background-color: var(--bg);
+  --r-main-font: "Inter", "Noto Sans", "DejaVu Sans", system-ui, sans-serif;
+  --r-main-font-size: 34px;
+  --r-main-color: var(--fg);
+  --r-heading-font: var(--r-main-font);
+  --r-heading-color: #0b1320;
+  --r-heading-font-weight: 700;
+  --r-heading-text-transform: none;
+  --r-heading-text-shadow: none;
+  --r-heading-line-height: 1.1;
+  --r-heading-letter-spacing: -0.01em;
+  --r-link-color: var(--accent);
+  --r-link-color-hover: #0a4a8c;
+  --r-selection-background-color: var(--accent);
+  --r-code-font: "JetBrains Mono", "Fira Code", "DejaVu Sans Mono", monospace;
+}
+
+.reveal {
+  font-weight: 400;
+}
+
+.reveal .slides section {
+  text-align: left;
+}
+
+.reveal h2 {
+  font-size: 1.7em;
+  margin-bottom: 0.6em;
+}
+
+.reveal code {
+  font-family: var(--r-code-font);
+}
+
+/* Блоки кода: светлая подсветка (в reveal.js есть только тёмные темы highlight.js) */
+.reveal pre {
+  width: 100%;
+  margin: 0.6em 0;
+  box-shadow: none;
+  font-size: 0.55em;
+  background: var(--code-bg);
+  border: 1px solid #d5dbe3;
+  border-radius: 8px;
+}
+
+.reveal pre code {
+  max-height: 520px;
+  padding: 18px 22px;
+  color: var(--fg);
+  background: transparent;
+}
+
+.hljs-comment, .hljs-quote { color: #5b6b7d; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal { color: #b3261e; }
+.hljs-string, .hljs-regexp, .hljs-addition { color: #0b6b3a; }
+.hljs-number, .hljs-symbol, .hljs-bullet { color: #9a4d00; }
+.hljs-title, .hljs-section, .hljs-function .hljs-title { color: #0b5cad; }
+.hljs-built_in, .hljs-type, .hljs-class .hljs-title { color: #6b3fa0; }
+.hljs-attr, .hljs-attribute, .hljs-variable, .hljs-params { color: #1a2330; }
+.hljs-deletion { color: #b3261e; }
+
+.reveal .slide-number {
+  color: var(--muted);
+  background: transparent;
+  font-size: 18px;
+}
+
+/* ---------- Титульный слайд ---------- */
+
+.reveal section.title-slide {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding-left: 40px;
+  border-left: 6px solid var(--accent);
+}
+
+.title-slide .eyebrow {
+  margin: 0 0 18px;
+  font-size: 22px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.title-slide h1 {
+  margin: 0 0 24px;
+  font-size: 96px;
+  line-height: 1.02;
+}
+
+.title-slide .subtitle {
+  margin: 0 0 64px;
+  max-width: 820px;
+  font-size: 32px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.title-slide .meta {
+  display: flex;
+  gap: 32px;
+  font-size: 24px;
+  color: var(--fg);
+}
+
+.title-slide .meta span + span::before {
+  content: "·";
+  margin-right: 32px;
+  color: var(--muted);
+}
+
+/* ---------- Слайд 2: M×N ---------- */
+
+.mn-slide .compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 10px;
+}
+
+.mn-slide .panel h3 {
+  margin: 0 0 6px;
+  font-size: 30px;
+  color: var(--muted);
+  text-transform: none;
+}
+
+.mn-slide .diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.diagram text {
+  font-family: var(--r-main-font);
+  font-size: 24px;
+  fill: var(--fg);
+}
+
+.diagram .node {
+  fill: var(--code-bg);
+  stroke: #9aa7b8;
+  stroke-width: 1.5;
+}
+
+.diagram .edge {
+  stroke-width: 2;
+  fill: none;
+}
+
+.diagram .edge.bad {
+  stroke: var(--accent-2);
+  opacity: 0.8;
+}
+
+.diagram .edge.good {
+  stroke: var(--accent);
+}
+
+.diagram .hub {
+  fill: var(--accent);
+}
+
+.diagram .hub-text {
+  font-size: 34px;
+  font-weight: 700;
+  fill: #ffffff;
+}
+
+.mn-slide .formula {
+  margin: 8px 0 0;
+  font-size: 32px;
+}
+
+.mn-slide .formula b {
+  font-size: 1.3em;
+}
+
+.mn-slide .formula.bad b { color: var(--accent-2); }
+.mn-slide .formula.good b { color: var(--accent); }
+
+.mn-slide .takeaway {
+  margin: 18px 0 0;
+  font-size: 32px;
+  color: var(--muted);
+}
+
+.mn-slide .takeaway b {
+  color: var(--fg);
+}
+
+/* ---------- Слайд 3: история ---------- */
+
+.history-slide .timeline {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 60px;
+}
+
+.history-slide .step {
+  position: relative;
+  padding-top: 34px;
+  border-top: 4px solid #b9c3d1;
+}
+
+.history-slide .step::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.history-slide .when {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.history-slide .step h3 {
+  margin: 10px 0 20px;
+  font-size: 32px;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.history-slide .step ul {
+  display: block;
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: 29px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.history-slide .step li {
+  margin-bottom: 8px;
+}
+
+.history-slide .note {
+  margin: 56px 0 0;
+  padding-left: 20px;
+  border-left: 5px solid var(--accent-2);
+  font-size: 30px;
+  color: var(--fg);
+}
+
+/* ---------- Слайд 4: идея LSP ---------- */
+
+.idea-slide .flow {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+}
+
+.flow .box-title {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.flow .box-sub {
+  font-size: 24px;
+  fill: var(--muted);
+}
+
+.flow .arrow {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.flow .arrow-label {
+  font-size: 24px;
+  fill: var(--muted);
+}
+
+.flow .pill {
+  fill: var(--accent);
+}
+
+.flow .pill-text {
+  font-size: 22px;
+  font-weight: 600;
+  fill: #ffffff;
+}
+
+.idea-slide .points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 36px;
+  margin-top: 26px;
+}
+
+.idea-slide .point {
+  padding-left: 18px;
+  border-left: 5px solid var(--accent);
+}
+
+.idea-slide .point b {
+  display: block;
+  font-size: 30px;
+}
+
+.idea-slide .point span {
+  display: block;
+  margin-top: 2px;
+  font-size: 25px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+/* ---------- Слайд 5: что умеет LSP ---------- */
+
+.features-slide .cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 10px;
+}
+
+.features-slide .card {
+  padding: 18px 22px 16px;
+  background: var(--code-bg);
+  border: 1px solid #d5dbe3;
+  border-top: 5px solid var(--accent);
+  border-radius: 10px;
+}
+
+.features-slide .card h3 {
+  margin: 0 0 10px;
+  font-size: 30px;
+  line-height: 1.15;
+  text-transform: none;
+}
+
+.features-slide .card code {
+  display: block;
+  padding: 0;
+  font-size: 19px;
+  color: var(--accent);
+  background: transparent;
+}
+
+.features-slide .card p {
+  margin: 10px 0 0;
+  font-size: 25px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.features-slide .note {
+  margin: 34px 0 0;
+  padding-left: 20px;
+  border-left: 5px solid var(--accent-2);
+  font-size: 30px;
+}
+
+/* ---------- Слайд 6: JSON-RPC ---------- */
+
+.rpc-slide .lead {
+  margin: 0 0 26px;
+  font-size: 30px;
+  color: var(--muted);
+}
+
+.rpc-slide .msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.rpc-slide .msg {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.rpc-slide .label h3 {
+  margin: 0;
+  font-size: 32px;
+  text-transform: none;
+}
+
+.rpc-slide .label span {
+  display: block;
+  margin-top: 2px;
+  font-size: 23px;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+.rpc-slide pre {
+  margin: 0;
+  font-size: 22px;
+}
+
+.rpc-slide pre code {
+  padding: 20px 20px;
+  overflow: hidden;
+}
+
+.rpc-slide .note {
+  margin: 48px 0 0;
+  padding-left: 20px;
+  border-left: 5px solid var(--accent-2);
+  font-size: 30px;
+}
+
+.rpc-slide .note code {
+  color: var(--accent);
+}
+
+/* ---------- Слайд 7: устройство протокола ---------- */
+
+.wire-slide .lead {
+  margin: 0 0 60px;
+  font-size: 30px;
+  color: var(--muted);
+}
+
+.wire-slide .frame {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.wire-slide .seg code {
+  display: block;
+  padding: 14px 16px;
+  font-size: 28px;
+  white-space: pre;
+  background: var(--code-bg);
+  border: 1px solid #d5dbe3;
+  border-bottom: 5px solid var(--c);
+  border-radius: 8px 8px 0 0;
+}
+
+.wire-slide .seg span {
+  display: block;
+  margin-top: 10px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--c);
+}
+
+.wire-slide .seg.head { --c: var(--accent); }
+.wire-slide .seg.sep  { --c: var(--muted); }
+.wire-slide .seg.body { --c: var(--accent-2); }
+
+.wire-slide .rules {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 110px;
+}
+
+.wire-slide .rule {
+  padding-left: 18px;
+  border-left: 5px solid var(--accent);
+}
+
+.wire-slide .rule b {
+  display: block;
+  font-size: 34px;
+}
+
+.wire-slide .rule span {
+  display: block;
+  margin-top: 6px;
+  font-size: 28px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.wire-slide .rule code {
+  font-size: 0.9em;
+  color: var(--accent);
+}
+
+/* ---------- Слайд 8: жизненный цикл ---------- */
+
+.seq-slide .legend {
+  display: flex;
+  gap: 36px;
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+.seq-slide .legend .k {
+  padding-bottom: 2px;
+  border-bottom: 4px solid var(--accent);
+}
+
+.seq-slide .legend .k.resp { border-bottom-style: dashed; }
+.seq-slide .legend .k.notif { border-bottom-color: var(--accent-2); }
+
+.seq-slide .seq {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.seq .life {
+  stroke: #b9c3d1;
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+}
+
+.seq .sep {
+  stroke: #d5dbe3;
+  stroke-width: 1.5;
+}
+
+.seq .head {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.seq .phase {
+  font-size: 23px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+
+.seq .msg {
+  stroke-width: 3;
+}
+
+.seq .msg.req,
+.seq .msg.resp { stroke: var(--accent); }
+.seq .msg.resp { stroke-dasharray: 9 6; }
+.seq .msg.notif { stroke: var(--accent-2); }
+
+.seq .lbl {
+  font-size: 23px;
+}
+
+.seq .lbl.mono {
+  font-family: var(--r-code-font);
+  font-size: 21px;
+}
+
+.seq .lbl.notif { fill: var(--accent-2); }
+.seq .lbl.req,
+.seq .lbl.resp { fill: var(--accent); }
+
+/* ---------- Слайд 9: серверы и клиенты ---------- */
+
+.eco-slide .eco {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 56px;
+}
+
+.eco-slide .col h3 {
+  margin: 0 0 14px;
+  font-size: 30px;
+  color: var(--muted);
+  text-transform: none;
+}
+
+.eco-slide .srv {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  align-items: baseline;
+  padding: 11px 0;
+  border-top: 1px solid #d5dbe3;
+}
+
+.eco-slide .srv b {
+  font-size: 30px;
+}
+
+.eco-slide .srv code {
+  font-size: 25px;
+  color: var(--accent);
+}
+
+.eco-slide .srv.demo b::after {
+  content: "демо";
+  margin-left: 10px;
+  padding: 2px 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--accent-2);
+  border-radius: 10px;
+  vertical-align: middle;
+}
+
+.eco-slide .pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.eco-slide .pill {
+  padding: 8px 20px;
+  font-size: 28px;
+  background: var(--code-bg);
+  border: 0;
+  box-shadow: inset 0 0 0 1px #b9c3d1; /* вместо border: без швов при масштабировании слайда */
+  border-radius: 999px;
+}
+
+.eco-slide .note {
+  margin: 36px 0 0;
+  padding-left: 20px;
+  border-left: 5px solid var(--accent-2);
+  font-size: 30px;
+}
+
+/* ---------- Слайды демо ---------- */
+
+.demo-slide .eyebrow {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.demo-slide h2 {
+  margin-bottom: 0.3em;
+}
+
+.demo-slide .lead {
+  margin: 0 0 28px;
+  font-size: 30px;
+  color: var(--muted);
+}
+
+.demo-slide .lead code {
+  color: var(--accent);
+}
+
+.demo-slide .steps {
+  display: block;
+  margin: 0 0 34px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.demo-slide .steps li {
+  display: grid;
+  grid-template-columns: 56px 340px 1fr;
+  align-items: baseline;
+  padding: 9px 0;
+  border-top: 1px solid #d5dbe3;
+  font-size: 29px;
+  counter-increment: step;
+}
+
+.demo-slide .steps li::before {
+  content: counter(step);
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.demo-slide .steps code {
+  font-size: 27px;
+  color: var(--accent);
+}
+
+.demo-slide .steps span {
+  color: var(--muted);
+}
+
+.demo-slide pre {
+  margin: 0;
+  font-size: 26px;
+}
+
+.demo-slide .steps code {
+  white-space: nowrap;
+}
+
+.demo-slide .note {
+  margin: 0 0 28px;
+  padding-left: 20px;
+  border-left: 5px solid var(--accent-2);
+  font-size: 28px;
+}
+
+/* ---------- Слайд 13: перспективы ---------- */
+
+.future-slide .timeline {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 36px;
+}
+
+.future-slide .step {
+  position: relative;
+  padding-top: 30px;
+  border-top: 4px solid #b9c3d1;
+}
+
+.future-slide .step::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.future-slide .step.next::before {
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 4px solid var(--accent);
+}
+
+.future-slide .when {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.future-slide .step h3 {
+  margin: 12px 0 8px;
+  font-size: 32px;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.future-slide .step p {
+  margin: 0;
+  font-size: 27px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.future-slide .groups {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 40px;
+  margin-top: 72px;
+}
+
+.future-slide .group h3 {
+  margin: 0 0 14px;
+  font-size: 30px;
+  color: var(--muted);
+  text-transform: none;
+}
+
+.future-slide .pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.future-slide .pill {
+  padding: 8px 20px;
+  font-size: 26px;
+  background: var(--code-bg);
+  border: 0;
+  box-shadow: inset 0 0 0 1px #b9c3d1; /* вместо border: без швов при масштабировании слайда */
+  border-radius: 999px;
+}
+
+.future-slide .pill b {
+  color: var(--accent);
+}
+
+.future-slide .group p {
+  margin: 16px 0 0;
+  font-size: 25px;
+  color: var(--muted);
+}
+
+/* ---------- Слайд 14: LSP и ИИ-агенты ---------- */
+
+.ai-slide .lead {
+  margin: 0 0 22px;
+  font-size: 30px;
+  color: var(--muted);
+}
+
+.ai-slide .compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.ai-slide .panel h3 {
+  margin: 0 0 10px;
+  font-size: 30px;
+  color: var(--muted);
+  text-transform: none;
+}
+
+.ai-slide .listing {
+  background: var(--code-bg);
+  border: 1px solid #d5dbe3;
+  border-radius: 10px;
+  font-family: var(--r-code-font);
+  font-size: 22px;
+  overflow: hidden;
+}
+
+.ai-slide .listing .cmd {
+  padding: 14px 20px 12px;
+  color: var(--accent);
+}
+
+.ai-slide .listing .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 11px 20px;
+  border-top: 1px solid #d5dbe3;
+}
+
+.ai-slide .listing .tag {
+  font-family: var(--r-main-font);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.ai-slide .listing .row.miss {
+  background: #fbeedc;
+}
+
+.ai-slide .listing .row.miss .tag {
+  color: var(--accent-2);
+}
+
+.ai-slide .count {
+  margin: 16px 0 0;
+  font-size: 32px;
+}
+
+.ai-slide .count b {
+  font-size: 1.3em;
+}
+
+.ai-slide .count.bad b { color: var(--accent-2); }
+.ai-slide .count.good b { color: var(--accent); }
+
+.ai-slide .note {
+  margin: 30px 0 0;
+  padding-left: 20px;
+  border-left: 5px solid var(--accent-2);
+  font-size: 30px;
+}
+
+/* ---------- Слайды 15-16: карточки (альтернативы, ограничения) ---------- */
+
+.alt-slide .cards,
+.limits-slide .cards {
+  display: grid;
+  gap: 22px;
+  margin-top: 6px;
+}
+
+.alt-slide .cards { grid-template-columns: 1fr 1fr; }
+.limits-slide .cards { grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 14px; }
+
+.alt-slide .card,
+.limits-slide .card {
+  padding: 22px 28px 20px;
+  background: var(--code-bg);
+  border: 1px solid #d5dbe3;
+  border-top: 5px solid var(--accent);
+  border-radius: 10px;
+}
+
+.limits-slide .card { border-top-color: var(--accent-2); }
+
+.alt-slide .card h3,
+.limits-slide .card h3 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.15;
+  text-transform: none;
+}
+
+.alt-slide .card small {
+  display: block;
+  margin-top: 3px;
+  font-size: 22px;
+  color: var(--muted);
+}
+
+.alt-slide .card p {
+  margin: 10px 0 0;
+  font-size: 26px;
+  line-height: 1.3;
+}
+
+.alt-slide .card p.minus {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.alt-slide .card p.minus::before {
+  content: "Минус: ";
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.limits-slide .card p {
+  margin: 14px 0 0;
+  font-size: 28px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.alt-slide .note {
+  margin: 26px 0 0;
+  padding-left: 20px;
+  border-left: 5px solid var(--accent-2);
+  font-size: 30px;
+}
+
+/* ---------- Слайд 17: итоги ---------- */
+
+.end-slide .theses {
+  display: block;
+  margin: 8px 0 28px;
+  padding: 0;
+  list-style: none;
+  counter-reset: thesis;
+}
+
+.end-slide .theses li {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid #d5dbe3;
+  counter-increment: thesis;
+}
+
+.end-slide .theses li::before {
+  content: counter(thesis);
+  grid-row: 1 / 3;
+  width: 48px;
+  height: 48px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 48px;
+  text-align: center;
+  color: #ffffff;
+  background: var(--accent-2);
+  border-radius: 50%;
+}
+
+.end-slide .theses b {
+  font-size: 38px;
+  line-height: 1.15;
+}
+
+.end-slide .theses span {
+  margin-top: 2px;
+  font-size: 28px;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+.end-slide .sources {
+  padding: 14px 24px 12px;
+  background: var(--code-bg);
+  border: 1px solid #d5dbe3;
+  border-radius: 10px;
+}
+
+.end-slide .sources h3 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.end-slide .sources ul {
+  display: block;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 22px;
+  line-height: 1.5;
+}
+
+.end-slide .sources code {
+  color: var(--accent);
+}
+
+.end-slide .sources span {
+  color: var(--muted);
+}

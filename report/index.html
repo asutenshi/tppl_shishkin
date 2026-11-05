@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Language Server Protocol</title>
+
+  <link rel="stylesheet" href="node_modules/reveal.js/dist/reset.css">
+  <link rel="stylesheet" href="node_modules/reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="node_modules/reveal.js/dist/theme/white.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1. Титул -->
+      <section class="title-slide">
+        <p class="eyebrow">Доклад</p>
+        <h1>Language Server<br>Protocol</h1>
+        <p class="subtitle">Один протокол вместо M×N интеграций между редакторами и языками</p>
+        <div class="meta">
+          <span>Шишкин Артём Дмитриевич</span>
+          <span>группа 14321</span>
+          <span>ТИПЯП</span>
+        </div>
+        <aside class="notes">
+          <p>Здравствуйте. Тема доклада — Language Server Protocol, LSP.</p>
+          <p>Сегодня я расскажу, как работают подсветка кода, подсказки и прочая «магия» в ваших IDE: автодополнение, переход к определению, красные волнистые линии под ошибками.</p>
+          <p>Всё это делает не сам редактор, а отдельная программа — языковой сервер, и общаются они по одному общему протоколу.</p>
+          <p>Покажу, как этот протокол устроен, и вживую — как редактор с ним разговаривает.</p>
+        </aside>
+      </section>
+
+      <!-- 2. Проблема M×N -->
+      <section class="mn-slide">
+        <h2>Проблема: M×N интеграций</h2>
+        <div class="compare">
+          <div class="panel">
+            <h3>Без LSP</h3>
+            <svg class="diagram" viewBox="-2 0 564 340" role="img" aria-label="Каждый редактор связан с каждым языком отдельной интеграцией">
+            <line class="edge bad" x1="170" y1="45" x2="390" y2="45"/>
+            <line class="edge bad" x1="170" y1="45" x2="390" y2="125"/>
+            <line class="edge bad" x1="170" y1="45" x2="390" y2="205"/>
+            <line class="edge bad" x1="170" y1="45" x2="390" y2="285"/>
+            <line class="edge bad" x1="170" y1="125" x2="390" y2="45"/>
+            <line class="edge bad" x1="170" y1="125" x2="390" y2="125"/>
+            <line class="edge bad" x1="170" y1="125" x2="390" y2="205"/>
+            <line class="edge bad" x1="170" y1="125" x2="390" y2="285"/>
+            <line class="edge bad" x1="170" y1="205" x2="390" y2="45"/>
+            <line class="edge bad" x1="170" y1="205" x2="390" y2="125"/>
+            <line class="edge bad" x1="170" y1="205" x2="390" y2="205"/>
+            <line class="edge bad" x1="170" y1="205" x2="390" y2="285"/>
+            <line class="edge bad" x1="170" y1="285" x2="390" y2="45"/>
+            <line class="edge bad" x1="170" y1="285" x2="390" y2="125"/>
+            <line class="edge bad" x1="170" y1="285" x2="390" y2="205"/>
+            <line class="edge bad" x1="170" y1="285" x2="390" y2="285"/>
+            <rect class="node" x="0" y="20" width="170" height="50" rx="8"/><text x="85.0" y="53" text-anchor="middle">VS Code</text>
+            <rect class="node" x="0" y="100" width="170" height="50" rx="8"/><text x="85.0" y="133" text-anchor="middle">Neovim</text>
+            <rect class="node" x="0" y="180" width="170" height="50" rx="8"/><text x="85.0" y="213" text-anchor="middle">Emacs</text>
+            <rect class="node" x="0" y="260" width="170" height="50" rx="8"/><text x="85.0" y="293" text-anchor="middle">Sublime</text>
+            <rect class="node" x="390" y="20" width="170" height="50" rx="8"/><text x="475.0" y="53" text-anchor="middle">Python</text>
+            <rect class="node" x="390" y="100" width="170" height="50" rx="8"/><text x="475.0" y="133" text-anchor="middle">C++</text>
+            <rect class="node" x="390" y="180" width="170" height="50" rx="8"/><text x="475.0" y="213" text-anchor="middle">Rust</text>
+            <rect class="node" x="390" y="260" width="170" height="50" rx="8"/><text x="475.0" y="293" text-anchor="middle">Go</text>
+            </svg>
+            <p class="formula bad">4 × 4 = <b>16</b> реализаций</p>
+          </div>
+          <div class="panel fragment">
+            <h3>С LSP</h3>
+            <svg class="diagram" viewBox="-2 0 564 340" role="img" aria-label="Редакторы и языки связаны через общий протокол">
+            <line class="edge good" x1="150" y1="45" x2="215" y2="165"/>
+            <line class="edge good" x1="345" y1="165" x2="410" y2="45"/>
+            <line class="edge good" x1="150" y1="125" x2="215" y2="165"/>
+            <line class="edge good" x1="345" y1="165" x2="410" y2="125"/>
+            <line class="edge good" x1="150" y1="205" x2="215" y2="165"/>
+            <line class="edge good" x1="345" y1="165" x2="410" y2="205"/>
+            <line class="edge good" x1="150" y1="285" x2="215" y2="165"/>
+            <line class="edge good" x1="345" y1="165" x2="410" y2="285"/>
+            <rect class="hub" x="215" y="115" width="130" height="100" rx="12"/><text class="hub-text" x="280" y="172" text-anchor="middle">LSP</text>
+            <rect class="node" x="0" y="20" width="150" height="50" rx="8"/><text x="75.0" y="53" text-anchor="middle">VS Code</text>
+            <rect class="node" x="0" y="100" width="150" height="50" rx="8"/><text x="75.0" y="133" text-anchor="middle">Neovim</text>
+            <rect class="node" x="0" y="180" width="150" height="50" rx="8"/><text x="75.0" y="213" text-anchor="middle">Emacs</text>
+            <rect class="node" x="0" y="260" width="150" height="50" rx="8"/><text x="75.0" y="293" text-anchor="middle">Sublime</text>
+            <rect class="node" x="410" y="20" width="150" height="50" rx="8"/><text x="485.0" y="53" text-anchor="middle">Python</text>
+            <rect class="node" x="410" y="100" width="150" height="50" rx="8"/><text x="485.0" y="133" text-anchor="middle">C++</text>
+            <rect class="node" x="410" y="180" width="150" height="50" rx="8"/><text x="485.0" y="213" text-anchor="middle">Rust</text>
+            <rect class="node" x="410" y="260" width="150" height="50" rx="8"/><text x="485.0" y="293" text-anchor="middle">Go</text>
+            </svg>
+            <p class="formula good">4 + 4 = <b>8</b> реализаций</p>
+          </div>
+        </div>
+        <p class="takeaway fragment">Для 10 редакторов и 20 языков: <b>200</b> интеграций против <b>30</b></p>
+        <aside class="notes">
+          <p>Сейчас разберёмся, почему вообще появилась необходимость в LSP. Для этого нужно вспомнить, как всё было раньше.</p>
+          <p>Раньше каждая IDE писала свою собственную поддержку каждого языка. Хотите подсказки для Python в VS Code — кто-то пишет Python-анализатор под VS Code. Хотите то же самое в Vim — всё пишется заново. Потом в Emacs, потом в Sublime. И так для каждого языка.</p>
+          <p>Посмотрите на левую схему. Слева четыре редактора, справа четыре языка, и каждый редактор связан с каждым языком своей отдельной линией. Каждая линия — это месяцы чьей-то работы. Четыре на четыре — шестнадцать интеграций.</p>
+          <p>[клик] Теперь идея LSP: поставим посередине общий протокол. Редактор учится говорить на нём один раз, язык учится говорить на нём один раз. Получается четыре плюс четыре — восемь, а не шестнадцать.</p>
+          <p>[клик] И чем больше участников, тем заметнее выигрыш. Для десяти редакторов и двадцати языков — двести интеграций против тридцати. Вот это и есть главная идея: умножение превращается в сложение. Дальше посмотрим, как это появилось исторически.</p>
+        </aside>
+      </section>
+
+      <!-- 3. История -->
+      <section class="history-slide">
+        <h2>История</h2>
+        <div class="timeline">
+          <div class="step">
+            <div class="when">До 2016</div>
+            <h3>У каждого сервера свой протокол</h3>
+            <ul>
+              <li>OmniSharp (C#): HTTP + JSON</li>
+              <li>tsserver (TypeScript): stdio</li>
+              <li>VS Code использует оба</li>
+            </ul>
+          </div>
+          <div class="step fragment">
+            <div class="when">27 июня 2016</div>
+            <h3>Анонс LSP</h3>
+            <ul>
+              <li>Microsoft, Red Hat и Codenvy</li>
+              <li>За основу взят протокол tsserver</li>
+              <li>JSON-RPC и capabilities</li>
+            </ul>
+          </div>
+          <div class="step fragment">
+            <div class="when">Сегодня</div>
+            <h3>Открытый стандарт</h3>
+            <ul>
+              <li>Спецификация на GitHub</li>
+              <li>Текущая версия 3.18</li>
+              <li>Готовится 3.19</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note fragment">Начали с диагностики (линтеры), затем добавили полный набор языковых функций</p>
+        <aside class="notes">
+          <p>Откуда это взялось. До 2016 года положение было таким, как я описал: везде своё. Причём даже у языковых серверов, которые уже существовали отдельно от редактора, не было общего языка. Например, OmniSharp для C# работал по HTTP с JSON, а tsserver для TypeScript общался через стандартный ввод-вывод. И VS Code, чтобы поддерживать оба языка, приходилось реализовывать оба способа общения.</p>
+          <p>[клик] В июне 2016 года Microsoft вместе с Red Hat и Codenvy анонсировали Language Server Protocol. За основу взяли именно то, что уже было в tsserver, и добавили две вещи: стандартный формат сообщений JSON-RPC и систему capabilities — я объясню её чуть позже.</p>
+          <p>[клик] Сегодня это открытый стандарт: спецификация лежит на GitHub, текущая версия — 3.18, уже готовится 3.19.</p>
+          <p>[клик] И заметьте: начинали очень скромно — с диагностики, то есть с обычных линтеров, которые подчёркивают ошибки. А уже потом протокол вырос до полного набора функций, которые мы привыкли видеть в IDE.</p>
+        </aside>
+      </section>
+
+      <!-- 4. Идея LSP -->
+      <section class="idea-slide">
+        <h2>Идея LSP</h2>
+        <svg class="flow diagram" viewBox="0 0 1180 200" role="img" aria-label="Редактор обменивается JSON-RPC сообщениями с языковым сервером в обе стороны">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0b5cad"/>
+            </marker>
+          </defs>
+          <rect class="node" x="1" y="20" width="360" height="160" rx="12"/>
+          <text class="box-title" x="181" y="88" text-anchor="middle">Редактор</text>
+          <text class="box-sub" x="181" y="124" text-anchor="middle">клиент: VS Code, Neovim…</text>
+
+          <rect class="node" x="819" y="20" width="360" height="160" rx="12"/>
+          <text class="box-title" x="999" y="88" text-anchor="middle">Языковой сервер</text>
+          <text class="box-sub" x="999" y="124" text-anchor="middle">pylsp, clangd, rust-analyzer</text>
+
+          <text class="arrow-label" x="590" y="52" text-anchor="middle">запросы и уведомления</text>
+          <line class="arrow" x1="375" y1="70" x2="805" y2="70" marker-end="url(#arr)"/>
+          <rect class="pill" x="440" y="86" width="300" height="34" rx="17"/>
+          <text class="pill-text" x="590" y="110" text-anchor="middle">JSON-RPC · stdio / TCP</text>
+          <line class="arrow" x1="805" y1="136" x2="375" y2="136" marker-end="url(#arr)"/>
+          <text class="arrow-label" x="590" y="172" text-anchor="middle">ответы и уведомления</text>
+        </svg>
+        <div class="points">
+          <div class="point fragment"><b>Сервер — отдельный процесс</b><span>на любом языке; падение не роняет редактор</span></div>
+          <div class="point fragment"><b>Документ принадлежит клиенту</b><span>источник истины — буфер редактора, а не файл на диске</span></div>
+          <div class="point fragment"><b>Протокол двусторонний</b><span>сервер сам присылает диагностики и сообщения</span></div>
+          <div class="point fragment"><b>Протокол не знает язык</b><span>только документ, позиция, диапазон и правка</span></div>
+        </div>
+        <aside class="notes">
+          <p>Теперь сама идея, на одной картинке. Слева редактор — в терминах протокола он называется клиентом. Справа языковой сервер — это отдельная программа, которая понимает конкретный язык: pylsp для Python, clangd для C++, rust-analyzer для Rust. Между ними идёт обмен сообщениями в формате JSON-RPC, обычно через stdio — то есть просто через стандартный ввод и вывод процесса. Стрелок две, потому что общение двустороннее.</p>
+          <p>Здесь четыре важных свойства, я пройдусь по ним по очереди.</p>
+          <p>[клик] Первое: сервер — это отдельный процесс, и написан он может быть на чём угодно. Практическая польза: если сервер упал или завис, редактор продолжает работать.</p>
+          <p>[клик] Второе: документ принадлежит клиенту. Источник истины — это то, что сейчас в буфере редактора, даже если вы ещё не сохранили файл. Поэтому подсказки работают по несохранённому коду.</p>
+          <p>[клик] Третье: протокол двусторонний. Сервер не только отвечает на запросы, но и сам присылает диагностики — например, когда он закончил анализ и нашёл ошибку.</p>
+          <p>[клик] И четвёртое, самое важное: протокол вообще не знает ничего про язык программирования. Он оперирует только документом, позицией в нём, диапазоном и правкой. Всё остальное — дело сервера. Это свойство нам понадобится в третьем демо.</p>
+        </aside>
+      </section>
+
+      <!-- 5. Что умеет LSP -->
+      <section class="features-slide">
+        <h2>Что умеет LSP</h2>
+        <div class="cards">
+          <div class="card">
+            <h3>Автодополнение</h3>
+            <code>textDocument/completion</code>
+            <p>варианты при наборе кода</p>
+          </div>
+          <div class="card">
+            <h3>Подсказка</h3>
+            <code>textDocument/hover</code>
+            <p>при наведении: тип и документация</p>
+          </div>
+          <div class="card">
+            <h3>Определение</h3>
+            <code>textDocument/definition</code>
+            <p>переход к объявлению; references — все использования</p>
+          </div>
+          <div class="card">
+            <h3>Диагностика</h3>
+            <code>textDocument/publishDiagnostics</code>
+            <p>ошибки и предупреждения; присылает сервер</p>
+          </div>
+          <div class="card">
+            <h3>Переименование</h3>
+            <code>textDocument/rename</code>
+            <p>символа во всём проекте</p>
+          </div>
+          <div class="card">
+            <h3>Быстрые исправления</h3>
+            <code>textDocument/codeAction</code>
+            <p>лампочка: исправления и рефакторинги</p>
+          </div>
+        </div>
+        <p class="note fragment">Всё необязательно: сервер сам заявляет при инициализации, что из этого умеет (capabilities)</p>
+        <aside class="notes">
+          <p>Хорошо, а что именно умеет протокол? Здесь шесть основных функций, и это ровно то, чем вы пользуетесь каждый день. Под названием каждой карточки написан метод протокола — то есть настоящее имя запроса, который редактор отправляет серверу.</p>
+          <p>Автодополнение — completion: вы набираете, а сервер предлагает варианты. Подсказка при наведении — hover: тип и документация. Переход к определению — definition; рядом references, он показывает все места использования. Диагностика — publishDiagnostics: ошибки и предупреждения, и это как раз тот случай, когда сервер присылает их сам. Переименование — rename: переименовать символ сразу во всём проекте. И быстрые исправления — codeAction: та самая лампочка с предложением починить или отрефакторить.</p>
+          <p>[клик] И важный момент: всё это необязательно. Сервер при знакомстве сам сообщает клиенту, что он умеет, — это и называется capabilities. Простой сервер может уметь только диагностику, мощный — всё. Клиент смотрит на этот список и показывает в интерфейсе только то, что реально поддерживается.</p>
+        </aside>
+      </section>
+
+      <!-- 6. JSON-RPC -->
+      <section class="rpc-slide">
+        <h2>Что такое JSON-RPC</h2>
+        <p class="lead">Вызов функции в другом процессе: сообщения в формате JSON</p>
+        <div class="msgs">
+          <div class="msg fragment">
+            <div class="label"><h3>Запрос</h3><span>ответ обязателен</span></div>
+            <pre><code class="language-json" data-trim>{"jsonrpc":"2.0","id":2,"method":"textDocument/hover","params":{…}}</code></pre>
+          </div>
+          <div class="msg fragment">
+            <div class="label"><h3>Ответ</h3><span>тот же id, что у запроса</span></div>
+            <pre><code class="language-json" data-trim>{"jsonrpc":"2.0","id":2,"result":{…}}</code></pre>
+          </div>
+          <div class="msg fragment">
+            <div class="label"><h3>Уведомление</h3><span>без id, ответа нет</span></div>
+            <pre><code class="language-json" data-trim>{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{…}}</code></pre>
+          </div>
+        </div>
+        <p class="note fragment"><code>id</code> связывает ответ с запросом: запросы можно слать подряд, не дожидаясь ответов</p>
+        <aside class="notes">
+          <p>Теперь заглянем под капот: как именно редактор и сервер разговаривают. Формат называется JSON-RPC. По сути это вызов функции в другом процессе: вы отправляете сообщение «вызови метод такой-то с такими-то параметрами», а результат приходит обратно тоже сообщением. И всё это обычный JSON, который можно прочитать глазами.</p>
+          <p>Сообщений бывает три вида.</p>
+          <p>[клик] Запрос. У него есть id и имя метода, и на него обязательно нужен ответ. Здесь пример — hover: «что находится в этой позиции?».</p>
+          <p>[клик] Ответ. В нём тот же id, что был у запроса, и результат внутри поля result.</p>
+          <p>[клик] И уведомление. У него нет id, и ответа на него не будет. Это просто «к вашему сведению». Например, didOpen — «я открыл вот такой файл».</p>
+          <p>[клик] Зачем нужен id: он связывает ответ с запросом. Благодаря этому клиент может не ждать ответа на первый запрос, а сразу слать следующие. Редактор не замирает, пока сервер думает. Все три вида сообщений мы увидим вживую в первом демо.</p>
+        </aside>
+      </section>
+
+      <!-- 7. Устройство протокола -->
+      <section class="wire-slide">
+        <h2>Устройство протокола</h2>
+        <p class="lead">Каждое сообщение — заголовок и JSON-тело</p>
+        <div class="frame">
+          <div class="seg head"><code>Content-Length: 38</code><span>заголовок</span></div>
+          <div class="seg sep"><code>\r\n\r\n</code><span>разделитель</span></div>
+          <div class="seg body"><code>{"jsonrpc":"2.0","id":3,"result":null}</code><span>тело: ровно 38 байт</span></div>
+        </div>
+        <div class="rules">
+          <div class="rule fragment"><b>Длина — в байтах</b><span>не в символах; тело всегда в UTF-8</span></div>
+          <div class="rule fragment"><b>Транспорт любой</b><span>чаще всего stdio, реже TCP или pipe</span></div>
+          <div class="rule fragment"><b>Позиции — с нуля</b><span><code>line</code> и <code>character</code>; символы считаются в UTF-16</span></div>
+        </div>
+        <aside class="notes">
+          <p>Следующий вопрос: а как эти сообщения выглядят на самом деле, когда летят между процессами? Это очень похоже на HTTP. У каждого сообщения есть заголовок и тело. В заголовке одна главная строка — Content-Length, длина тела. Дальше пустая строка, то есть два перевода строки, а за ней само JSON-тело. Здесь длина — тридцать восемь байт, и тело ровно такой длины. Зачем это нужно: чтобы получатель знал, где кончается одно сообщение и начинается следующее.</p>
+          <p>Три правила, на которых любят спотыкаться при написании своего клиента.</p>
+          <p>[клик] Первое: длина считается в байтах, а не в символах. Тело всегда в UTF-8, и русская буква занимает два байта.</p>
+          <p>[клик] Второе: транспорт может быть любой. Чаще всего это stdio, реже TCP или pipe. Протоколу всё равно, как доставлены байты.</p>
+          <p>[клик] Третье: позиции в тексте считаются с нуля — строка и символ в строке. Но символы при этом считаются в единицах UTF-16. Это странность, и она не случайна, к ней мы вернёмся на слайде про ограничения. А в третьем демо вы даже увидите её в действии на эмодзи.</p>
+        </aside>
+      </section>
+
+      <!-- 8. Жизненный цикл -->
+      <section class="seq-slide">
+        <h2>Жизненный цикл сессии</h2>
+        <p class="legend"><span class="k req">запрос</span><span class="k resp">ответ</span><span class="k notif">уведомление</span></p>
+        <svg class="seq diagram" viewBox="-2 0 1204 520" role="img" aria-label="Последовательность сообщений между клиентом и сервером">
+          <defs>
+            <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0b5cad"/></marker>
+            <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b45309"/></marker>
+          </defs>
+          <line class="life" x1="330" y1="44" x2="330" y2="520"/>
+          <line class="life" x1="930" y1="44" x2="930" y2="520"/>
+          <rect class="node" x="200" y="0" width="260" height="42" rx="8"/><text class="head" x="330" y="29" text-anchor="middle">Редактор</text>
+          <rect class="node" x="800" y="0" width="260" height="42" rx="8"/><text class="head" x="930" y="29" text-anchor="middle">Языковой сервер</text>
+          <g class=""><text class="phase" x="0" y="132">Инициализация</text><text class="lbl mono req" x="630" y="75" text-anchor="middle">initialize</text><line class="msg req" x1="338" y1="84" x2="922" y2="84" marker-end="url(#arrB)"/><text class="lbl resp" x="630" y="117" text-anchor="middle">результат: capabilities</text><line class="msg resp" x1="922" y1="126" x2="338" y2="126" marker-end="url(#arrB)"/><text class="lbl mono notif" x="630" y="159" text-anchor="middle">initialized</text><line class="msg notif" x1="338" y1="168" x2="922" y2="168" marker-end="url(#arrO)"/></g>
+          <line class="sep" x1="0" y1="198" x2="1200" y2="198"/>
+          <g class="fragment"><text class="phase" x="0" y="298">Работа</text><text class="lbl mono notif" x="630" y="219" text-anchor="middle">textDocument/didOpen</text><line class="msg notif" x1="338" y1="228" x2="922" y2="228" marker-end="url(#arrO)"/><text class="lbl mono notif" x="630" y="261" text-anchor="middle">textDocument/publishDiagnostics</text><line class="msg notif" x1="922" y1="270" x2="338" y2="270" marker-end="url(#arrO)"/><text class="lbl mono req" x="630" y="303" text-anchor="middle">textDocument/hover</text><line class="msg req" x1="338" y1="312" x2="922" y2="312" marker-end="url(#arrB)"/><text class="lbl resp" x="630" y="345" text-anchor="middle">результат: Hover</text><line class="msg resp" x1="922" y1="354" x2="338" y2="354" marker-end="url(#arrB)"/></g>
+          <line class="sep" x1="0" y1="384" x2="1200" y2="384"/>
+          <g class="fragment"><text class="phase" x="0" y="460">Завершение</text><text class="lbl mono req" x="630" y="405" text-anchor="middle">shutdown</text><line class="msg req" x1="338" y1="414" x2="922" y2="414" marker-end="url(#arrB)"/><text class="lbl resp" x="630" y="447" text-anchor="middle">результат: null</text><line class="msg resp" x1="922" y1="456" x2="338" y2="456" marker-end="url(#arrB)"/><text class="lbl mono notif" x="630" y="489" text-anchor="middle">exit</text><line class="msg notif" x1="338" y1="498" x2="922" y2="498" marker-end="url(#arrO)"/></g>
+        </svg>
+        <aside class="notes">
+          <p>Теперь соберём всё вместе и посмотрим на жизнь одной сессии от начала до конца. Слева редактор, справа сервер, время идёт сверху вниз. Цвета: синяя сплошная линия — запрос, синяя пунктирная — ответ, оранжевая — уведомление.</p>
+          <p>Начинается всё с инициализации — это рукопожатие. Редактор отправляет initialize: «привет, вот что умею я». Сервер отвечает своими capabilities: «а вот что умею я». И редактор уведомлением initialized говорит: «принято, начинаем».</p>
+          <p>[клик] Дальше собственно работа. Пользователь открыл файл — редактор присылает уведомление didOpen с текстом. Сервер анализирует его и сам присылает диагностики — это уведомление в обратную сторону. Потом пользователь навёл мышь на слово — запрос hover и ответ с описанием. Эта фаза может длиться часами и повторяться много раз.</p>
+          <p>[клик] И завершение: редактор просит shutdown, сервер отвечает, и затем уведомление exit — процесс закрывается. Именно в таком порядке всё и будет происходить в первом демо, шаг за шагом.</p>
+        </aside>
+      </section>
+
+      <!-- 9. Серверы и клиенты -->
+      <section class="eco-slide">
+        <h2>Кто использует</h2>
+        <div class="eco">
+          <div class="col servers">
+            <h3>Серверы</h3>
+            <div class="srv demo"><b>Python</b><code>pylsp, pyright</code></div>
+            <div class="srv"><b>C / C++</b><code>clangd</code></div>
+            <div class="srv"><b>Rust</b><code>rust-analyzer</code></div>
+            <div class="srv"><b>Go</b><code>gopls</code></div>
+            <div class="srv"><b>TypeScript</b><code>typescript-language-server</code></div>
+            <div class="srv"><b>Java</b><code>jdtls</code></div>
+          </div>
+          <div class="col clients fragment">
+            <h3>Клиенты</h3>
+            <div class="pills">
+            <span class="pill">VS Code</span>
+            <span class="pill">Neovim</span>
+            <span class="pill">Emacs</span>
+            <span class="pill">Helix</span>
+            <span class="pill">Zed</span>
+            <span class="pill">Sublime Text</span>
+            </div>
+          </div>
+        </div>
+        <p class="note fragment">Клиент и сервер выбираются независимо: у них общий протокол</p>
+        <aside class="notes">
+          <p>Посмотрим, как это выглядит в реальном мире. Слева — серверы. Для Python это pylsp и pyright; pylsp у нас как раз в демонстрации. Для C и C++ — clangd, для Rust — rust-analyzer, для Go — gopls, для TypeScript — typescript-language-server, для Java — jdtls. Обратите внимание: почти у каждого популярного языка есть сервер, и обычно его пишет сообщество самого языка, которое знает его лучше всех.</p>
+          <p>[клик] Справа — клиенты: VS Code, Neovim, Emacs, Helix, Zed, Sublime Text. Это совершенно разные редакторы, от консольных до современных графических.</p>
+          <p>[клик] И самое главное: любой клиент из правой колонки можно подключить к любому серверу из левой. Они выбираются независимо, потому что говорят на одном протоколе. Это и есть та самая арифметика «M плюс N» в живом виде. А теперь хватит слайдов — давайте покажем всё это в работе.</p>
+        </aside>
+      </section>
+
+      <!-- 10. Демо 1 -->
+      <section class="demo-slide">
+        <p class="eyebrow">Демо 1</p>
+        <h2>Сообщения вручную</h2>
+        <p class="lead">Скрипт играет роль редактора, сервер — <code>pylsp</code></p>
+        <ol class="steps">
+          <li><code>initialize</code><span>знакомство и обмен capabilities</span></li>
+          <li><code>initialized</code><span>«начинаем» (уведомление)</span></li>
+          <li><code>didOpen</code><span>отправляем текст файла, в ответ приходят диагностики</span></li>
+          <li><code>hover</code><span>что находится под курсором</span></li>
+          <li><code>shutdown + exit</code><span>завершение работы</span></li>
+        </ol>
+        <pre><code class="language-bash" data-trim>.venv/bin/python demo/demo1_raw_lsp.py --step</code></pre>
+        <aside class="notes">
+          <p>Демо 1: всё вручную, без редактора. Я хочу, чтобы вы увидели то, что обычно скрыто: сообщения между редактором и сервером. Роль редактора будет играть небольшой скрипт на Python, а сервером будет настоящий pylsp.</p>
+          <p>[Запуск: .venv/bin/python demo/demo1_raw_lsp.py --step. Скрипт ждёт Enter после каждого шага.]</p>
+          <p>Идём по шагам. Сначала initialize: смотрим, как скрипт представляется, и особенно — что в ответ присылает сервер, то есть его capabilities. Потом initialized. Затем didOpen: скрипт отправляет серверу текст файла, и в ответ прилетают диагностики — сервер сам нашёл проблемы. Потом hover: спрашиваем, что находится под курсором, и получаем описание. И наконец shutdown и exit.</p>
+          <p>Обратите внимание на формат: заголовок Content-Length, пустая строка и JSON — именно то, о чём было на слайдах про устройство протокола. Здесь нет никакой магии: это текст, который можно прочитать.</p>
+          <p>[Если что-то не запустилось — показать лог demo/pylsp.log, там то же самое.]</p>
+        </aside>
+      </section>
+
+      <!-- 11. Демо 2 -->
+      <section class="demo-slide">
+        <p class="eyebrow">Демо 2</p>
+        <h2>Настоящий редактор</h2>
+        <p class="lead">VS Code с минимальным клиентом LSP, сервер — тот же <code>pylsp</code></p>
+        <ol class="steps">
+          <li><code>publishDiagnostics</code><span>волнистая линия под ошибкой</span></li>
+          <li><code>hover</code><span>наведение на <code>area</code> и <code>math.pi</code></span></li>
+          <li><code>completion</code><span>набираем <code>math.</code>, список вариантов</span></li>
+          <li><code>definition</code><span>F12 на вызове функции</span></li>
+          <li><code>rename</code><span>F2, переименование по всему файлу</span></li>
+        </ol>
+        <p class="note">Output → LSP Demo: те же JSON-RPC сообщения, что в демо 1</p>
+        <pre><code class="language-bash" data-trim>demo/run_vscode.sh</code></pre>
+        <aside class="notes">
+          <p>Демо 2: теперь то же самое, но в настоящем редакторе. Это VS Code с минимальным клиентом LSP, который я написал для демонстрации, а сервер — всё тот же pylsp. Так что клиент не имеет отношения ни к Python, ни к Microsoft-плагинам для Python: вся умность идёт от сервера.</p>
+          <p>[Запуск: demo/run_vscode.sh]</p>
+          <p>Пройдёмся по тому, что вы знаете как «магию IDE». Под ошибкой появилась волнистая линия — это диагностика, publishDiagnostics. Наведу мышь на area и на math.pi — hover. Наберу math и точку — список вариантов, completion. Нажму F12 на вызове функции — переход к определению. Нажму F2 — переименую функцию, и она поменяется по всему файлу.</p>
+          <p>И теперь посмотрите на вкладку Output, канал LSP Demo. Это те же самые JSON-RPC сообщения, что мы только что видели в первом демо. Каждое нажатие клавиши — это сообщения туда и обратно.</p>
+        </aside>
+      </section>
+
+      <!-- 12. Демо 3 -->
+      <section class="demo-slide">
+        <p class="eyebrow">Демо 3</p>
+        <h2>Свой языковой сервер</h2>
+        <p class="lead">Тот же клиент, но сервер наш: один файл на <code>pygls</code>, около 80 строк</p>
+        <ol class="steps">
+          <li><code>server.py</code><span>весь сервер на экране: три обработчика</span></li>
+          <li><code>publishDiagnostics</code><span><code>TODO</code> и <code>FIXME</code> подчёркнуты, даже после эмодзи</span></li>
+          <li><code>hover</code><span>статистика слова под курсором, русские слова тоже</span></li>
+          <li><code>completion</code><span>Ctrl+Space: <code>TODO</code>, <code>FIXME</code>, <code>NOTE</code></span></li>
+        </ol>
+        <p class="note">Сервер не знает язык файла: протоколу нужны только текст и позиции</p>
+        <pre><code class="language-bash" data-trim>demo/run_vscode.sh mini</code></pre>
+        <aside class="notes">
+          <p>Демо 3: самое интересное. Мы с вами увидели, как работает чужой сервер. Теперь напишем свой. Клиент тот же самый, а вот сервер — наш, один файл на библиотеке pygls, около восьмидесяти строк.</p>
+          <p>[Запуск: demo/run_vscode.sh mini. Сначала показать server.py на экране.]</p>
+          <p>Посмотрите на код: там всего три обработчика — на диагностику, на hover и на автодополнение. Всё. Что делает наш сервер: подчёркивает слова TODO и FIXME, при наведении показывает статистику слова, а по Ctrl+Space предлагает TODO, FIXME и NOTE.</p>
+          <p>Заметьте две вещи. Первое: диагностика подчёркивает слова правильно даже после эмодзи — это тот самый момент, где позиции в UTF-16 важны. Второе: hover работает на русских словах. А почему так? Потому что сервер вообще не знает, что за язык в файле. Протоколу нужны только текст и позиции — это четвёртое свойство со слайда про идею LSP. На этом демонстрации заканчиваются, возвращаемся к презентации.</p>
+        </aside>
+      </section>
+
+      <!-- 13. Перспективы -->
+      <section class="future-slide">
+        <h2>Перспективы</h2>
+        <div class="timeline">
+          <div class="step">
+            <div class="when">3.17</div>
+            <h3>Новые функции</h3>
+            <p>inlay hints, type hierarchy</p>
+          </div>
+          <div class="step fragment">
+            <div class="when">3.18</div>
+            <h3>Подсказки при наборе</h3>
+            <p>inline completion</p>
+          </div>
+          <div class="step next fragment">
+            <div class="when">3.19</div>
+            <h3>Готовится</h3>
+            <p>уже на сайте спецификации</p>
+          </div>
+        </div>
+        <div class="groups fragment">
+          <div class="group">
+            <h3>Та же идея в других областях</h3>
+            <div class="pills">
+              <span class="pill"><b>DAP</b> — отладчики</span>
+              <span class="pill"><b>BSP</b> — системы сборки</span>
+            </div>
+            <p>DAP сделан по образцу LSP</p>
+          </div>
+          <div class="group">
+            <h3>Серверы на быстрых языках</h3>
+            <div class="pills">
+              <span class="pill">rust-analyzer</span>
+              <span class="pill">gopls</span>
+              <span class="pill">TypeScript → Go</span>
+            </div>
+          </div>
+        </div>
+        <aside class="notes">
+          <p>Теперь о том, что будет дальше. Протокол продолжает развиваться, и это хорошо видно по версиям. В 3.17 появились новые функции, например inlay hints — те серые подсказки с названиями параметров прямо в коде — и type hierarchy. В 3.18 — inline completion, подсказки при наборе в стиле автодополнения целыми кусками кода. А 3.19 уже готовится, она есть на сайте спецификации.</p>
+          <p>[клик] Вторая линия развития: идея оказалась настолько удачной, что её применили в соседних областях. DAP — Debug Adapter Protocol — это такой же протокол, но для отладчиков, и он сделан по образцу LSP. BSP — Build Server Protocol — для систем сборки. Принцип тот же: убрать умножение интеграций.</p>
+          <p>И третье наблюдение справа: серверы всё чаще пишут на быстрых языках — rust-analyzer на Rust, gopls на Go. Показательный пример — даже компилятор TypeScript переписывают на Go, потому что скорость анализа важна. Проще говоря, протокол стал частью инфраструктуры.</p>
+        </aside>
+      </section>
+
+      <!-- 14. LSP и ИИ-агенты -->
+      <section class="ai-slide">
+        <h2>LSP и ИИ-агенты</h2>
+        <p class="lead">Агент задаёт тот же вопрос, что и редактор: кто вызывает <code>area</code>?</p>
+        <div class="compare">
+          <div class="panel">
+            <h3>Поиск по тексту</h3>
+            <div class="listing">
+              <div class="cmd">$ grep -rn "area" .</div>
+              <div class="row"><span>shapes.py:3  def area(r):</span><span class="tag">определение</span></div>
+              <div class="row"><span>shapes.py:9  print(area(2))</span><span class="tag">вызов</span></div>
+              <div class="row miss"><span>notes.md:5  # plot area</span><span class="tag">комментарий</span></div>
+              <div class="row miss"><span>stats.py:12  area = 5</span><span class="tag">другое</span></div>
+            </div>
+            <p class="count bad"><b>4</b> вхождения, из них 2 лишних</p>
+          </div>
+          <div class="panel fragment">
+            <h3>Языковой сервер</h3>
+            <div class="listing">
+              <div class="cmd">textDocument/references</div>
+              <div class="row"><span>shapes.py:3  def area(r):</span><span class="tag">определение</span></div>
+              <div class="row"><span>shapes.py:9  print(area(2))</span><span class="tag">вызов</span></div>
+            </div>
+            <p class="count good"><b>2</b> точных результата</p>
+          </div>
+        </div>
+        <p class="note fragment">GitHub Copilot CLI уже умеет настраивать языковые серверы для агента. Пока это эксперименты, а не стандарт</p>
+        <aside class="notes">
+          <p>И ещё одна свежая тема — ИИ-агенты. Агент, который пишет или правит код, задаёт ровно тот же вопрос, что и редактор. Например: где вызывается функция area?</p>
+          <p>Слева самый простой способ — поиск по тексту, grep. Он нашёл четыре вхождения. Но посмотрите: два из них — лишние. Одно — просто слово в комментарии, другое — переменная с таким же именем, не имеющая отношения к функции. Агент вынужден разбираться в этом сам и может ошибиться.</p>
+          <p>[клик] А языковой сервер понимает код и не путает функцию с переменной. Запрос references возвращает ровно два результата: определение и вызов. Никаких лишних.</p>
+          <p>[клик] Честно скажу про статус: инструменты вроде GitHub Copilot CLI уже умеют подключать языковые серверы агенту, но пока это эксперименты, а не устоявшийся стандарт. Но направление очевидное.</p>
+        </aside>
+      </section>
+
+      <!-- 15. Альтернативы -->
+      <section class="alt-slide">
+        <h2>Альтернативы</h2>
+        <div class="cards">
+          <div class="card">
+            <h3>Нативный API IDE</h3>
+            <small>JetBrains, Eclipse JDT, Visual Studio</small>
+            <p>анализ внутри самой IDE</p>
+            <p class="minus">привязан к одной IDE, каждый язык делается заново</p>
+          </div>
+          <div class="card fragment">
+            <h3>tree-sitter</h3>
+            <small>инкрементальный парсер</small>
+            <p>быстрый разбор синтаксиса</p>
+            <p class="minus">нет типов и связей между файлами</p>
+          </div>
+          <div class="card fragment">
+            <h3>ctags</h3>
+            <small>индекс символов</small>
+            <p>простой поиск определений по файлам</p>
+            <p class="minus">нет семантики, возможны ложные переходы</p>
+          </div>
+          <div class="card fragment">
+            <h3>LSIF / SCIP</h3>
+            <small>Sourcegraph</small>
+            <p>заранее собранные индексы кода</p>
+            <p class="minus">не интерактивны: нет подсказок при наборе</p>
+          </div>
+        </div>
+        <p class="note fragment">Подходы не исключают друг друга: tree-sitter — подсветка, LSP — семантика</p>
+        <aside class="notes">
+          <p>Теперь честно: LSP — не единственный способ анализировать код. Давайте посмотрим на альтернативы и почему они не заменили протокол.</p>
+          <p>Первая — нативный API самой IDE. Так делают JetBrains, Eclipse с JDT, Visual Studio. Анализ работает глубоко и быстро, потому что живёт внутри IDE. Но минус как раз тот, с которого мы начинали: он привязан к одной IDE, и поддержку каждого языка нужно делать заново.</p>
+          <p>[клик] Вторая — tree-sitter, инкрементальный парсер. Он очень быстро разбирает синтаксис, поэтому его используют для подсветки. Но он видит только структуру: типов и связей между файлами у него нет.</p>
+          <p>[клик] Третья — ctags, старый индекс символов. Простой поиск определений по файлам. Но семантики нет, и переходы могут вести не туда.</p>
+          <p>[клик] Четвёртая — LSIF и SCIP от Sourcegraph: индексы, собранные заранее. Отлично подходят для навигации по репозиторию, но они не интерактивные — подсказок во время набора не будет.</p>
+          <p>[клик] Главный вывод: подходы не исключают друг друга. На практике tree-sitter делает подсветку, а LSP даёт семантику — и они спокойно работают вместе.</p>
+        </aside>
+      </section>
+
+      <!-- 16. Ограничения -->
+      <section class="limits-slide">
+        <h2>Ограничения LSP</h2>
+        <div class="cards">
+          <div class="card fragment"><h3>Один документ и позиция</h3><p>сложные рефакторинги и интерфейс IDE выходят за рамки протокола</p></div>
+          <div class="card fragment"><h3>Нет описания проекта</h3><p>venv, include-пути: у каждого сервера свои файлы настроек</p></div>
+          <div class="card fragment"><h3>Качество неравномерно</h3><p>клиент или сервер поддерживают не все capabilities</p></div>
+          <div class="card fragment"><h3>Тяжёлые серверы</h3><p>индекс большого проекта съедает память и процессор</p></div>
+          <div class="card fragment"><h3>Наследие</h3><p>позиции в UTF-16: так считают строки в JavaScript</p></div>
+          <div class="card fragment"><h3>Безопасность</h3><p>сервер работает с кодом проекта: чужие репозитории открывайте осторожно</p></div>
+        </div>
+        <aside class="notes">
+          <p>Ни одна технология не идеальна, и у LSP тоже есть слабые места. Пройдусь по основным.</p>
+          <p>[клик] Первое: протокол мыслит одним документом и позицией в нём. Сложные рефакторинги и особенности интерфейса конкретной IDE выходят за его рамки.</p>
+          <p>[клик] Второе: в протоколе нет описания проекта — где виртуальное окружение, какие include-пути. У каждого сервера свои файлы настроек, и это приходится настраивать отдельно.</p>
+          <p>[клик] Третье: качество неравномерное. Клиент или сервер могут поддерживать не все capabilities, и один и тот же язык в разных редакторах работает по-разному.</p>
+          <p>[клик] Четвёртое: серверы бывают тяжёлыми. Индекс большого проекта может съесть много памяти и процессора.</p>
+          <p>[клик] Пятое: наследие. Помните позиции в UTF-16? Так считают строки в JavaScript, а протокол родился в мире TypeScript. Потом в версии 3.17 добавили возможность договариваться о кодировке, но историческая странность осталась.</p>
+          <p>[клик] И шестое — безопасность. Сервер работает с кодом проекта и иногда запускает инструменты проекта, поэтому репозитории из непроверенных источников лучше открывать осторожно.</p>
+        </aside>
+      </section>
+
+      <!-- 17. Итоги -->
+      <section class="end-slide">
+        <h2>Итоги</h2>
+        <ol class="theses">
+          <li><b>M×N превращается в M+N</b><span>один сервер на язык, один клиент на редактор</span></li>
+          <li class="fragment"><b>Это простой текстовый протокол</b><span>JSON-RPC и Content-Length; сервер из демо 3 занимает около 80 строк</span></li>
+          <li class="fragment"><b>Он живой</b><span>версия 3.18, готовится 3.19; осваивает ИИ-агентов, но не заменяет анализаторы IDE</span></li>
+        </ol>
+        <div class="sources">
+          <h3>Источники</h3>
+          <ul>
+            <li><code>microsoft.github.io/language-server-protocol</code> <span>— спецификация</span></li>
+            <li><code>code.visualstudio.com/blogs/2016/06/27/common-language-protocol</code> <span>— анонс</span></li>
+            <li><code>github.com/microsoft/language-server-protocol/wiki/Protocol-History</code></li>
+            <li><code>pygls.readthedocs.io</code> <span>— библиотека для демо 3</span></li>
+          </ul>
+        </div>
+        <aside class="notes">
+          <p>Подведу итоги, и их три.</p>
+          <p>Первое: M умножить на N превращается в M плюс N. Один сервер на язык, один клиент на редактор — и всё работает со всем.</p>
+          <p>Второе: это простой текстовый протокол. JSON-RPC плюс заголовок Content-Length. Мы это видели своими глазами: сервер из третьего демо уместился примерно в восемьдесят строк.</p>
+          <p>Третье: протокол живой. Версия 3.18, готовится 3.19, он осваивает новую область — ИИ-агентов, но при этом не заменяет глубокие анализаторы IDE, а дополняет их.</p>
+          <p>Внизу — источники, на которые я опирался: спецификация, анонс 2016 года, история протокола и документация pygls.</p>
+          <p>Спасибо за внимание, готов ответить на вопросы.</p>
+        </aside>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="node_modules/reveal.js/dist/reveal.js"></script>
+  <script src="node_modules/reveal.js/dist/plugin/highlight.js"></script>
+  <script src="node_modules/reveal.js/dist/plugin/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280,
+      height: 720,
+      margin: 0.04,
+      center: false,
+      controls: false,
+      hash: true,
+      slideNumber: 'c/t',
+      transition: 'fade',
+      transitionSpeed: 'fast',
+      plugins: [RevealHighlight, RevealNotes],
+    });
+  </script>
+</body>
+</html>
